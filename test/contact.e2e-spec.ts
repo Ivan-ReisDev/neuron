@@ -5,10 +5,13 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 import { Contact } from './../src/modules/contact/entities/contact.entity';
+import { truncateAllTables } from './helpers/database.helper';
+import { getAdminToken } from './helpers/auth.helper';
 
 describe('Contacts (e2e)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
+  let adminToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,13 +29,8 @@ describe('Contacts (e2e)', () => {
   });
 
   beforeEach(async () => {
-    const entities = dataSource.entityMetadatas;
-    const tableNames = entities
-      .map((entity) => `"${entity.tableName}"`)
-      .join(', ');
-    await dataSource.query(
-      `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE`,
-    );
+    await truncateAllTables(dataSource);
+    adminToken = await getAdminToken(app, dataSource);
   });
 
   afterAll(async () => {
@@ -40,7 +38,7 @@ describe('Contacts (e2e)', () => {
   });
 
   describe('POST /api/contacts', () => {
-    it('should create a contact with valid data', async () => {
+    it('should create a contact with valid data (public)', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/contacts')
         .send({
@@ -128,7 +126,7 @@ describe('Contacts (e2e)', () => {
       ]);
     });
 
-    it('should return paginated contacts', async () => {
+    it('should return paginated contacts (public)', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/contacts')
         .expect(200);
@@ -170,7 +168,7 @@ describe('Contacts (e2e)', () => {
   });
 
   describe('GET /api/contacts/:id', () => {
-    it('should return a contact by id', async () => {
+    it('should return a contact by id (public)', async () => {
       const repository = dataSource.getRepository(Contact);
       const contact = await repository.save({
         name: 'Ivan Reis',
@@ -195,7 +193,7 @@ describe('Contacts (e2e)', () => {
   });
 
   describe('PATCH /api/contacts/:id', () => {
-    it('should update a contact partially', async () => {
+    it('should update a contact partially (with token)', async () => {
       const repository = dataSource.getRepository(Contact);
       const contact = await repository.save({
         name: 'Nome Original',
@@ -205,6 +203,7 @@ describe('Contacts (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/api/contacts/${contact.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Nome Atualizado' })
         .expect(200);
 
@@ -213,16 +212,31 @@ describe('Contacts (e2e)', () => {
       expect(body.email).toBe('original@email.com');
     });
 
+    it('should return 401 without token', async () => {
+      const repository = dataSource.getRepository(Contact);
+      const contact = await repository.save({
+        name: 'Contato',
+        email: 'contato@email.com',
+        description: 'Desc.',
+      });
+
+      return request(app.getHttpServer())
+        .patch(`/api/contacts/${contact.id}`)
+        .send({ name: 'Teste' })
+        .expect(401);
+    });
+
     it('should return 404 for non-existent id', () => {
       return request(app.getHttpServer())
         .patch('/api/contacts/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Teste' })
         .expect(404);
     });
   });
 
   describe('DELETE /api/contacts/:id', () => {
-    it('should delete a contact', async () => {
+    it('should delete a contact (with token)', async () => {
       const repository = dataSource.getRepository(Contact);
       const contact = await repository.save({
         name: 'Para Remover',
@@ -232,12 +246,27 @@ describe('Contacts (e2e)', () => {
 
       return request(app.getHttpServer())
         .delete(`/api/contacts/${contact.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .expect(204);
+    });
+
+    it('should return 401 without token', async () => {
+      const repository = dataSource.getRepository(Contact);
+      const contact = await repository.save({
+        name: 'Contato',
+        email: 'contato@email.com',
+        description: 'Desc.',
+      });
+
+      return request(app.getHttpServer())
+        .delete(`/api/contacts/${contact.id}`)
+        .expect(401);
     });
 
     it('should return 404 for non-existent id', () => {
       return request(app.getHttpServer())
         .delete('/api/contacts/a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
+        .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
   });

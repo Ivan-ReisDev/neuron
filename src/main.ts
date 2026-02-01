@@ -21,6 +21,7 @@ async function bootstrap() {
     .setTitle('Neuron')
     .setDescription('API RESTful para portfólio pessoal')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

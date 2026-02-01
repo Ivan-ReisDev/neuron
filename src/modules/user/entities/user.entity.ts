@@ -1,7 +1,7 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from '../../../shared/entities/base.entity';
-import { UserRole } from '../enums/user-role.enum';
+import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -15,8 +15,12 @@ export class User extends BaseEntity {
   @Exclude()
   password: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-  role: UserRole;
+  @ManyToOne(() => Role, (role) => role.users, { eager: true })
+  @JoinColumn({ name: 'roleId' })
+  role: Role;
+
+  @Column()
+  roleId: string;
 
   @Column({ default: true })
   isActive: boolean;

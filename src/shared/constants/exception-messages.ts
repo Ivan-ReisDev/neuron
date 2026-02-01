@@ -22,3 +22,11 @@ export const AUTH_MESSAGES = {
   TOKEN_EXPIRED: 'O token de autenticação expirou',
   TOKEN_INVALID: 'O token de autenticação é inválido',
 };
+
+export const AI_MESSAGES = {
+  PROVIDER_ERROR: 'Erro ao comunicar com o provedor de IA',
+  INVALID_MODEL: (model: string) => `O modelo ${model} não é suportado`,
+  INVALID_SCHEMA: 'O schema de resposta fornecido é inválido',
+  RATE_LIMIT: 'Limite de requisições ao provedor de IA excedido',
+  GENERATION_FAILED: 'Não foi possível gerar a resposta',
+};

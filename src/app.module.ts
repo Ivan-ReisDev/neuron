@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AiProviderModule } from './shared/providers/ai/ai-provider.module';
 import { SeederModule } from './shared/seeders/seeder.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { UserModule } from './modules/user/user.module';
+import { PermissionModule } from './modules/permission/permission.module';
+import { RoleModule } from './modules/role/role.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -29,9 +33,13 @@ import { UserModule } from './modules/user/user.module';
         };
       },
     }),
+    AiProviderModule,
     SeederModule,
+    PermissionModule,
+    RoleModule,
     ContactModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

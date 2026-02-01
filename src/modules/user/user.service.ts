@@ -21,6 +21,10 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
+  findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findByEmail(email);
+  }
+
   async create(data: DeepPartial<User>): Promise<User> {
     await this.ensureEmailIsUnique(data.email as string);
 

@@ -1,8 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-import ContactSeeder from '../../database/seeds/01-contact.seeder';
-import UserSeeder from '../../database/seeds/02-user.seeder';
+import PermissionSeeder from '../../database/seeds/01-permission.seeder';
+import RoleSeeder from '../../database/seeds/02-role.seeder';
+import UserSeeder from '../../database/seeds/03-user.seeder';
+import ContactSeeder from '../../database/seeds/04-contact.seeder';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -12,10 +14,9 @@ export class SeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+    const environment = this.configService.get<string>('NODE_ENV');
 
-    if (isProduction) {
+    if (environment === 'production' || environment === 'test') {
       return;
     }
 
@@ -48,7 +49,12 @@ export class SeederService implements OnModuleInit {
   }
 
   private async executeSeeders(): Promise<void> {
-    const seeders = [new ContactSeeder(), new UserSeeder()];
+    const seeders = [
+      new PermissionSeeder(),
+      new RoleSeeder(),
+      new UserSeeder(),
+      new ContactSeeder(),
+    ];
 
     for (const seeder of seeders) {
       await seeder.run(this.dataSource);
