@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { runSeeders, SeederOptions } from 'typeorm-extension';
+import ContactSeeder from '../../src/database/seeds/01-contact.seeder';
 
 export async function truncateAllTables(dataSource: DataSource): Promise<void> {
   const entities = dataSource.entityMetadatas;
@@ -18,10 +18,9 @@ export async function truncateAllTables(dataSource: DataSource): Promise<void> {
 }
 
 export async function seedTestDatabase(dataSource: DataSource): Promise<void> {
-  const seederOptions: SeederOptions = {
-    seeds: ['dist/database/seeds/**/*{.ts,.js}'],
-    factories: ['dist/database/factories/**/*{.ts,.js}'],
-  };
+  const seeders = [new ContactSeeder()];
 
-  await runSeeders(dataSource, seederOptions);
+  for (const seeder of seeders) {
+    await seeder.run(dataSource);
+  }
 }

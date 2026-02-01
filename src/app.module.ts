@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SeederModule } from './shared/seeders/seeder.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SeederModule } from './shared/seeders/seeder.module';
       }),
     }),
     SeederModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [],

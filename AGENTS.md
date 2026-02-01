@@ -154,6 +154,50 @@ All endpoints follow strict RESTful conventions:
 - Services inject repositories via `@InjectRepository(Entity)`.
 - Use TypeORM repository methods (`find`, `findOne`, `save`, `remove`, `update`).
 
+## Base Entity
+
+- **All entities must extend** `BaseEntity` from `src/shared/entities/base.entity.ts`.
+- `BaseEntity` provides `id` (UUID), `createdAt` and `updatedAt` automatically.
+- Module entities declare only their domain-specific fields.
+- Never redeclare `id`, `createdAt` or `updatedAt` in module entities.
+
+```typescript
+import { Entity, Column } from 'typeorm';
+import { BaseEntity } from '../../shared/entities/base.entity';
+
+@Entity()
+export class Project extends BaseEntity {
+  @Column()
+  title: string;
+}
+```
+
+## Base Repository
+
+- **All services that interact with the database must extend** `BaseRepository<T>`
+  from `src/shared/repositories/base.repository.ts`.
+- `BaseRepository` provides standard CRUD: `findAll(query)`, `findById(id)`, `create(data)`,
+  `update(id, data)` and `remove(id)`. Do not reimplement these methods.
+- `findAll` accepts `PaginationQueryDto` and returns `PaginatedResponseDto<T>` with
+  `data`, `meta` (page, limit, totalItems, totalPages, hasPreviousPage, hasNextPage).
+- `findById`, `update` and `remove` throw `NotFoundException` automatically if the
+  entity does not exist. All exception messages are in **Portuguese (pt-BR)**.
+- The TypeORM repository is `protected readonly` — use `this.repository` in child
+  classes for custom queries.
+- For domain-specific methods, add them directly in the module service.
+
+```typescript
+@Injectable()
+export class ProjectService extends BaseRepository<Project> {
+  constructor(
+    @InjectRepository(Project)
+    repository: Repository<Project>,
+  ) {
+    super(repository);
+  }
+}
+```
+
 ## Swagger Documentation
 
 - **Every endpoint must be documented with Swagger decorators.**
@@ -168,6 +212,16 @@ All endpoints follow strict RESTful conventions:
 - Use NestJS built-in HTTP exceptions: `NotFoundException`, `BadRequestException`,
   `ConflictException`, `UnauthorizedException`, etc. from `@nestjs/common`.
 - Never use raw `throw new Error()` for HTTP responses.
+- **All exception messages must be in Portuguese (pt-BR).**
+- **All exception messages are centralized** in
+  `src/shared/constants/exception-messages.ts`. Never hardcode message strings
+  directly in services, controllers, or repositories. Import from the constants
+  file instead. Available categories: `RESOURCE_MESSAGES`, `VALIDATION_MESSAGES`,
+  `AUTH_MESSAGES`.
+- Usage examples:
+  - `throw new NotFoundException(RESOURCE_MESSAGES.NOT_FOUND(id))`
+  - `throw new BadRequestException(VALIDATION_MESSAGES.REQUIRED_FIELD('email'))`
+  - `throw new ConflictException(RESOURCE_MESSAGES.ALREADY_EXISTS('email'))`
 - Validate all inputs via DTOs and the global `ValidationPipe`.
 
 ## E2E Testing
@@ -225,3 +279,5 @@ describe('Feature (e2e)', () => {
 - Do not use `console.log` in production code
 - Do not commit `.env` files (they are gitignored)
 - Do not create files outside the `src/shared/` and `src/modules/` structure
+- Do not create entities without extending `BaseEntity`
+- Do not reimplement CRUD operations that `BaseRepository` already provides

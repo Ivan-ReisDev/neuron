@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-import { runSeeders, SeederOptions } from 'typeorm-extension';
+import ContactSeeder from '../../database/seeds/01-contact.seeder';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -47,11 +47,10 @@ export class SeederService implements OnModuleInit {
   }
 
   private async executeSeeders(): Promise<void> {
-    const seederOptions: SeederOptions = {
-      seeds: ['dist/database/seeds/**/*{.ts,.js}'],
-      factories: ['dist/database/factories/**/*{.ts,.js}'],
-    };
+    const seeders = [new ContactSeeder()];
 
-    await runSeeders(this.dataSource, seederOptions);
+    for (const seeder of seeders) {
+      await seeder.run(this.dataSource);
+    }
   }
 }
