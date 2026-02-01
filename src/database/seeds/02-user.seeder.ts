@@ -12,28 +12,31 @@ export default class UserSeeder {
     const adminPassword = await bcrypt.hash('Admin@123', SALT_ROUNDS);
     const userPassword = await bcrypt.hash('User@1234', SALT_ROUNDS);
 
-    await repository.insert([
-      {
-        name: 'Admin Neuron',
-        email: 'admin@neuron.dev',
-        password: adminPassword,
-        role: UserRole.ADMIN,
-        isActive: true,
-      },
-      {
-        name: 'Ivan Reis',
-        email: 'ivan@neuron.dev',
-        password: userPassword,
-        role: UserRole.USER,
-        isActive: true,
-      },
-      {
-        name: 'Maria Silva',
-        email: 'maria@email.com',
-        password: userPassword,
-        role: UserRole.USER,
-        isActive: false,
-      },
-    ]);
+    await repository.upsert(
+      [
+        {
+          name: 'Admin Neuron',
+          email: 'admin@neuron.dev',
+          password: adminPassword,
+          role: UserRole.ADMIN,
+          isActive: true,
+        },
+        {
+          name: 'Ivan Reis',
+          email: 'ivan@neuron.dev',
+          password: userPassword,
+          role: UserRole.USER,
+          isActive: true,
+        },
+        {
+          name: 'Maria Silva',
+          email: 'maria@email.com',
+          password: userPassword,
+          role: UserRole.USER,
+          isActive: false,
+        },
+      ],
+      ['email'],
+    );
   }
 }
