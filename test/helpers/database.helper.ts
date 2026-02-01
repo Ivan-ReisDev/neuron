@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import ContactSeeder from '../../src/database/seeds/01-contact.seeder';
+import UserSeeder from '../../src/database/seeds/02-user.seeder';
 
 export async function truncateAllTables(dataSource: DataSource): Promise<void> {
   const entities = dataSource.entityMetadatas;
@@ -18,7 +19,7 @@ export async function truncateAllTables(dataSource: DataSource): Promise<void> {
 }
 
 export async function seedTestDatabase(dataSource: DataSource): Promise<void> {
-  const seeders = [new ContactSeeder()];
+  const seeders = [new ContactSeeder(), new UserSeeder()];
 
   for (const seeder of seeders) {
     await seeder.run(dataSource);

@@ -38,6 +38,7 @@ src/
   shared/                              # Everything shared across the application
     dto/                               # Shared DTOs (pagination, filters, responses)
     entities/                          # Base/shared entities
+    repositories/                      # Base repository (abstract CRUD)
     interceptors/                      # Global interceptors
     filters/                           # Global exception filters
     pipes/                             # Global pipes
@@ -49,6 +50,8 @@ src/
       project.module.ts
       project.controller.ts
       project.service.ts
+      repositories/
+        project.repository.ts
       dto/
         create-project.dto.ts
         update-project.dto.ts
@@ -135,10 +138,27 @@ All endpoints follow strict RESTful conventions:
 
 ## NestJS Patterns
 
+### Layered Architecture: Controller → Service → Repository
+
+Every feature module follows a strict **three-layer architecture**:
+
+1. **Controller** — Handles HTTP concerns only (routes, status codes, Swagger docs).
+   Validates input via DTOs (`class-validator` + `class-transformer`). Delegates
+   everything to the service layer. **Never** contains business logic or database access.
+2. **Service** — Contains **business logic only** (validation rules, data transformation,
+   orchestration). Depends on the module's repository via constructor injection.
+   **Never** accesses the database directly (no `@InjectRepository`, no TypeORM `Repository`).
+3. **Repository** — The **only layer** that interacts with the database. Extends
+   `BaseRepository<T>` which provides standard CRUD. Injects the TypeORM `Repository`
+   via `@InjectRepository()`. Add domain-specific query methods here.
+
 - **Controllers:** `@Controller('resources')`, inject services via constructor, handle
   HTTP concerns only. Delegate all business logic to the service layer.
-- **Services:** `@Injectable()`, contain all business logic and TypeORM repository calls.
-- **Modules:** `@Module({})`, declare imports, controllers, providers, exports.
+- **Services:** `@Injectable()`, contain all business logic. Inject the module repository
+  (not the TypeORM repository). Never import `@InjectRepository` or `Repository` from TypeORM.
+- **Repositories:** `@Injectable()`, extend `BaseRepository<T>`, inject the TypeORM
+  `Repository` via `@InjectRepository()`. Add custom query methods for domain-specific needs.
+- **Modules:** `@Module({})`, declare imports, controllers, providers (repository + service), exports.
 - **DTOs:** Use `class-validator` decorators (`@IsString()`, `@IsNotEmpty()`, `@IsOptional()`)
   and `class-transformer` for transformation. Use `@ApiProperty()` from Swagger on every field.
 - **Global ValidationPipe** in `main.ts` with `whitelist: true` and `transform: true`.
@@ -151,7 +171,8 @@ All endpoints follow strict RESTful conventions:
 - Connection configured via `TypeOrmModule.forRootAsync()` in `AppModule`.
 - Each feature module registers its entities with `TypeOrmModule.forFeature([Entity])`.
 - Entities use decorators: `@Entity()`, `@PrimaryGeneratedColumn('uuid')`, `@Column()`.
-- Services inject repositories via `@InjectRepository(Entity)`.
+- Module repositories inject the TypeORM `Repository` via `@InjectRepository(Entity)`.
+- Services **never** import `@InjectRepository` or TypeORM `Repository` directly.
 - Use TypeORM repository methods (`find`, `findOne`, `save`, `remove`, `update`).
 
 ## Base Entity
@@ -174,7 +195,7 @@ export class Project extends BaseEntity {
 
 ## Base Repository
 
-- **All services that interact with the database must extend** `BaseRepository<T>`
+- **All module repositories must extend** `BaseRepository<T>`
   from `src/shared/repositories/base.repository.ts`.
 - `BaseRepository` provides standard CRUD: `findAll(query)`, `findById(id)`, `create(data)`,
   `update(id, data)` and `remove(id)`. Do not reimplement these methods.
@@ -184,11 +205,12 @@ export class Project extends BaseEntity {
   entity does not exist. All exception messages are in **Portuguese (pt-BR)**.
 - The TypeORM repository is `protected readonly` — use `this.repository` in child
   classes for custom queries.
-- For domain-specific methods, add them directly in the module service.
+- For domain-specific query methods, add them in the module repository.
+- Services depend on the module repository — **never** on TypeORM `Repository` directly.
 
 ```typescript
 @Injectable()
-export class ProjectService extends BaseRepository<Project> {
+export class ProjectRepository extends BaseRepository<Project> {
   constructor(
     @InjectRepository(Project)
     repository: Repository<Project>,
@@ -281,3 +303,6 @@ describe('Feature (e2e)', () => {
 - Do not create files outside the `src/shared/` and `src/modules/` structure
 - Do not create entities without extending `BaseEntity`
 - Do not reimplement CRUD operations that `BaseRepository` already provides
+- Do not import `@InjectRepository` or TypeORM `Repository` in services — only in module repositories
+- Do not put database access logic in services — delegate to the module repository
+- Do not put business logic in repositories — repositories are for data access only

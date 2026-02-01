@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import ContactSeeder from '../../database/seeds/01-contact.seeder';
+import UserSeeder from '../../database/seeds/02-user.seeder';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -47,7 +48,7 @@ export class SeederService implements OnModuleInit {
   }
 
   private async executeSeeders(): Promise<void> {
-    const seeders = [new ContactSeeder()];
+    const seeders = [new ContactSeeder(), new UserSeeder()];
 
     for (const seeder of seeders) {
       await seeder.run(this.dataSource);

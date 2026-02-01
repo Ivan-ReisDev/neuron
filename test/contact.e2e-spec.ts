@@ -26,7 +26,13 @@ describe('Contacts (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await dataSource.query('TRUNCATE TABLE "contact" RESTART IDENTITY CASCADE');
+    const entities = dataSource.entityMetadatas;
+    const tableNames = entities
+      .map((entity) => `"${entity.tableName}"`)
+      .join(', ');
+    await dataSource.query(
+      `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE`,
+    );
   });
 
   afterAll(async () => {

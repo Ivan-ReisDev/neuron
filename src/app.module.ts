@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SeederModule } from './shared/seeders/seeder.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ContactModule } from './modules/contact/contact.module';
     }),
     SeederModule,
     ContactModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
