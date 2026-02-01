@@ -17,7 +17,6 @@ const options: DataSourceOptions & SeederOptions = {
   ssl: isProduction ? { rejectUnauthorized: false } : false,
   entities: ['src/modules/**/entities/*.entity.ts'],
   seeds: ['src/database/seeds/**/*{.ts,.js}'],
-  factories: ['src/database/factories/**/*{.ts,.js}'],
 };
 
 export const dataSource = new DataSource(options);
