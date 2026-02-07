@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { TurnstileService } from './turnstile.service';
 import { AuthGuard } from '../../shared/guards/auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { UserModule } from '../user/user.module';
@@ -28,6 +29,7 @@ import { UserModule } from '../user/user.module';
   controllers: [AuthController],
   providers: [
     AuthService,
+    TurnstileService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
