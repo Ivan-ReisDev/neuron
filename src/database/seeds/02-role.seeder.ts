@@ -11,8 +11,10 @@ export default class RoleSeeder {
 
     const allPermissions = await permissionRepository.find();
 
-    const contactReadPermission = allPermissions.find(
-      (p) => p.resource === Resource.CONTACTS && p.action === Action.READ,
+    const userPermissions = allPermissions.filter(
+      (p) =>
+        p.resource === Resource.TICKETS &&
+        (p.action === Action.CREATE || p.action === Action.READ),
     );
 
     const adminRole = roleRepository.create({
@@ -26,7 +28,7 @@ export default class RoleSeeder {
       name: 'USER',
       description: 'Usuário padrão com permissões limitadas',
       isActive: true,
-      permissions: contactReadPermission ? [contactReadPermission] : [],
+      permissions: userPermissions,
     });
 
     const existingAdmin = await roleRepository.findOne({
@@ -45,9 +47,7 @@ export default class RoleSeeder {
     });
 
     if (existingUser) {
-      existingUser.permissions = contactReadPermission
-        ? [contactReadPermission]
-        : [];
+      existingUser.permissions = userPermissions;
       await roleRepository.save(existingUser);
     } else {
       await roleRepository.save(userRole);

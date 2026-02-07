@@ -5,6 +5,7 @@ import PermissionSeeder from '../../database/seeds/01-permission.seeder';
 import RoleSeeder from '../../database/seeds/02-role.seeder';
 import UserSeeder from '../../database/seeds/03-user.seeder';
 import ContactSeeder from '../../database/seeds/04-contact.seeder';
+import TicketSeeder from '../../database/seeds/05-ticket.seeder';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -54,6 +55,7 @@ export class SeederService implements OnModuleInit {
       new RoleSeeder(),
       new UserSeeder(),
       new ContactSeeder(),
+      new TicketSeeder(),
     ];
 
     for (const seeder of seeders) {

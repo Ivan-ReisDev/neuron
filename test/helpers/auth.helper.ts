@@ -31,8 +31,10 @@ export async function seedPermissionsAndRoles(
   await permissionRepository.upsert(permissions, ['resource', 'action']);
   const allPermissions = await permissionRepository.find();
 
-  const contactReadPermission = allPermissions.find(
-    (p) => p.resource === Resource.CONTACTS && p.action === Action.READ,
+  const userPermissions = allPermissions.filter(
+    (p) =>
+      p.resource === Resource.TICKETS &&
+      (p.action === Action.CREATE || p.action === Action.READ),
   );
 
   let adminRole = await roleRepository.findOne({ where: { name: 'ADMIN' } });
@@ -57,11 +59,11 @@ export async function seedPermissionsAndRoles(
         name: 'USER',
         description: 'Usuário padrão',
         isActive: true,
-        permissions: contactReadPermission ? [contactReadPermission] : [],
+        permissions: userPermissions,
       }),
     );
   } else {
-    userRole.permissions = contactReadPermission ? [contactReadPermission] : [];
+    userRole.permissions = userPermissions;
     userRole = await roleRepository.save(userRole);
   }
 

@@ -8,6 +8,8 @@ import { UserModule } from './modules/user/user.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { RoleModule } from './modules/role/role.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { TicketModule } from './modules/ticket/ticket.module';
+import { MenuModule } from './modules/menu/menu.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { AuthModule } from './modules/auth/auth.module';
     ContactModule,
     UserModule,
     AuthModule,
+    TicketModule,
+    MenuModule,
   ],
   controllers: [],
   providers: [],

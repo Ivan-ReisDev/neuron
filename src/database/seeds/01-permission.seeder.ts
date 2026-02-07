@@ -28,6 +28,12 @@ const PERMISSION_DESCRIPTIONS: Record<Resource, Record<Action, string>> = {
     [Action.UPDATE]: 'Permite atualizar permissões',
     [Action.DELETE]: 'Permite remover permissões',
   },
+  [Resource.TICKETS]: {
+    [Action.CREATE]: 'Permite criar tickets',
+    [Action.READ]: 'Permite visualizar tickets',
+    [Action.UPDATE]: 'Permite atualizar tickets',
+    [Action.DELETE]: 'Permite remover tickets',
+  },
 };
 
 export default class PermissionSeeder {
