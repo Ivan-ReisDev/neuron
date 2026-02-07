@@ -7,7 +7,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { TurnstileService } from './turnstile.service';
 import { LoginDto } from './dto/login.dto';
