@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AiProviderModule } from './shared/providers/ai/ai-provider.module';
 import { SeederModule } from './shared/seeders/seeder.module';
 import { ContactModule } from './modules/contact/contact.module';
@@ -10,6 +11,7 @@ import { RoleModule } from './modules/role/role.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TicketModule } from './modules/ticket/ticket.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { MenuModule } from './modules/menu/menu.module';
         };
       },
     }),
+    EventEmitterModule.forRoot(),
     AiProviderModule,
     SeederModule,
     PermissionModule,
@@ -44,6 +47,7 @@ import { MenuModule } from './modules/menu/menu.module';
     AuthModule,
     TicketModule,
     MenuModule,
+    WhatsappModule,
   ],
   controllers: [],
   providers: [],

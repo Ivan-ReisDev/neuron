@@ -34,6 +34,12 @@ const PERMISSION_DESCRIPTIONS: Record<Resource, Record<Action, string>> = {
     [Action.UPDATE]: 'Permite atualizar tickets',
     [Action.DELETE]: 'Permite remover tickets',
   },
+  [Resource.WHATSAPP_CONVERSATIONS]: {
+    [Action.CREATE]: 'Permite criar conversas WhatsApp',
+    [Action.READ]: 'Permite visualizar conversas WhatsApp',
+    [Action.UPDATE]: 'Permite atualizar conversas WhatsApp',
+    [Action.DELETE]: 'Permite remover conversas WhatsApp',
+  },
 };
 
 export default class PermissionSeeder {

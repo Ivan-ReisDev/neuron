@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI, Content } from '@google/genai';
 import { AiProvider } from './ai-provider.interface';
@@ -12,6 +16,7 @@ import { AI_MESSAGES } from '../../constants/exception-messages';
 @Injectable()
 export class GeminiProvider implements AiProvider {
   private readonly client: GoogleGenAI;
+  private readonly logger = new Logger(GeminiProvider.name);
 
   constructor(private readonly configService: ConfigService) {
     this.client = new GoogleGenAI({
@@ -61,7 +66,8 @@ export class GeminiProvider implements AiProvider {
             }
           : undefined,
       };
-    } catch {
+    } catch (error) {
+      this.logger.error(`Gemini generateContent error: ${error}`);
       throw new InternalServerErrorException(AI_MESSAGES.GENERATION_FAILED);
     }
   }
