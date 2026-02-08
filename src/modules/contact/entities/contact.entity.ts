@@ -6,7 +6,7 @@ export class Contact extends BaseEntity {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column({ type: 'varchar', nullable: true })
