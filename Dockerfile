@@ -19,7 +19,10 @@ RUN pnpm build
 # ---- Production stage ----
 FROM node:22-alpine
 
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ chromium
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
