@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { WhatsappConversationRepository } from './repositories/whatsapp-conversation.repository';
@@ -27,13 +28,23 @@ const CONVERSATION_EXPIRE_HOURS = 24;
 @Injectable()
 export class WhatsappService {
   private readonly logger = new Logger(WhatsappService.name);
+  private readonly aiModel: AiModel;
+  private readonly providerName: string;
 
   constructor(
     private readonly whatsappClient: WhatsappClientService,
     private readonly conversationRepository: WhatsappConversationRepository,
     private readonly messageRepository: WhatsappMessageRepository,
     @Inject(AI_PROVIDER) private readonly aiProvider: AiProvider,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.providerName = this.configService.get<string>('AI_PROVIDER_NAME', 'gemini');
+    this.aiModel =
+      this.providerName === 'groq'
+        ? AiModel.LLAMA_3_3_70B
+        : AiModel.GEMINI_2_5_FLASH;
+    this.logger.log(`AI Provider: ${this.providerName} (${this.aiModel})`);
+  }
 
   @OnEvent('contact.created')
   async handleContactCreated(payload: Record<string, any>): Promise<void> {
@@ -153,11 +164,11 @@ export class WhatsappService {
     const aiMessages = this.buildAiMessages(messages, conversation);
 
     this.logger.log(
-      `Enviando ${aiMessages.length} mensagens para Gemini (conversa ${conversation.id})`,
+      `Enviando ${aiMessages.length} mensagens para ${this.providerName} (conversa ${conversation.id})`,
     );
 
     const response = await this.aiProvider.generateContent(aiMessages, {
-      model: AiModel.GEMINI_2_5_FLASH,
+      model: this.aiModel,
       systemInstruction: NOAH_SYSTEM_PROMPT,
       temperature: 0.7,
       maxOutputTokens: 500,
@@ -171,7 +182,7 @@ export class WhatsappService {
 
       if (finalizeCall) {
         this.logger.log(
-          `Gemini solicitou finalizacao da conversa ${conversation.id}`,
+          `${this.providerName} solicitou finalizacao da conversa ${conversation.id}`,
         );
         await this.finalizeConversation(
           conversation,
@@ -182,7 +193,7 @@ export class WhatsappService {
     }
 
     if (response.text) {
-      this.logger.log(`Resposta Gemini: ${response.text.substring(0, 80)}...`);
+      this.logger.log(`Resposta ${this.providerName}: ${response.text.substring(0, 80)}...`);
       await this.sendAndSaveBotMessage(conversation, response.text);
     }
   }
@@ -191,14 +202,14 @@ export class WhatsappService {
     conversation: WhatsappConversation,
     args: FinalizeArgs,
   ): Promise<void> {
-    const contactName = conversation.contact?.name ?? 'voce';
+    const contactName = conversation.contact?.name ?? 'você';
     const farewellMessage = [
-      `*${contactName}*, foi um prazer conversar com voce! 😊`,
+      `*${contactName}*, foi um prazer conversar com você! 😊`,
       '',
-      `Ja tenho todas as informacoes que preciso. Nossa *equipe tecnica* vai analisar tudo e entrara em contato em breve para dar continuidade ao seu projeto.`,
+      `Já tenho todas as informações que preciso. Nossa *equipe técnica* vai analisar tudo e entrará em contato em breve para dar continuidade ao seu projeto.`,
       '',
-      `Qualquer duvida, estamos a disposicao!`,
-      `Obrigado pela confianca na *Ivan Reis Tecnologia*! 🚀`,
+      `Qualquer dúvida, estamos à disposição!`,
+      `Obrigado pela confiança na *Ivan Reis Tecnologia*! 🚀`,
     ].join('\n');
 
     await this.sendAndSaveBotMessage(conversation, farewellMessage);
@@ -237,10 +248,10 @@ export class WhatsappService {
     const contactName =
       args.contactName ?? conversation.contact?.name ?? 'Desconhecido';
     const phone = conversation.phoneNumber;
-    const email = conversation.contact?.email ?? 'Nao informado';
+    const email = conversation.contact?.email ?? 'Não informado';
 
     const lines: string[] = [
-      '📋 *BRIEF TECNICO — NOVO LEAD*',
+      '📋 *BRIEF TÉCNICO — NOVO LEAD*',
       '━━━━━━━━━━━━━━━━━━━━━',
       '',
       `👤 *Contato:* ${contactName}`,
@@ -249,7 +260,7 @@ export class WhatsappService {
     ];
 
     if (args.businessSummary) {
-      lines.push(`🏢 *Negocio:* ${args.businessSummary}`);
+      lines.push(`🏢 *Negócio:* ${args.businessSummary}`);
     }
 
     lines.push('');
@@ -261,7 +272,7 @@ export class WhatsappService {
 
     if (args.integrations) {
       lines.push('');
-      lines.push(`🔗 *Integracoes:* ${args.integrations}`);
+      lines.push(`🔗 *Integrações:* ${args.integrations}`);
     }
 
     if (args.preferredStack) {
@@ -284,10 +295,10 @@ export class WhatsappService {
     }
 
     if (args.budget) {
-      lines.push(`💰 *Orcamento:* ${args.budget}`);
+      lines.push(`💰 *Orçamento:* ${args.budget}`);
     }
 
-    lines.push(`🔴 *Urgencia:* ${args.urgency}`);
+    lines.push(`🔴 *Urgência:* ${args.urgency}`);
 
     if (args.additionalNotes) {
       lines.push('');
@@ -337,11 +348,11 @@ export class WhatsappService {
 
   private buildGreetingMessage(contact: ContactPayload): string {
     return [
-      `Ola, *${contact.name}*! 👋`,
+      `Olá, *${contact.name}*! 👋`,
       '',
-      `Aqui e o *Noah*, assistente virtual da *Ivan Reis Tecnologia*.`,
+      `Aqui é o *Noah*, assistente virtual da *Ivan Reis Tecnologia*.`,
       '',
-      `Percebemos que voce solicitou contato pelo nosso site sobre:`,
+      `Percebemos que você solicitou contato pelo nosso site sobre:`,
       `_"${contact.description}"_`,
       '',
       `Gostaria de conversar um pouco mais sobre isso? Estou aqui pra te ajudar!`,
@@ -354,17 +365,17 @@ export class WhatsappService {
   ): AiMessage[] {
     const contactName = conversation.contact?.name ?? 'desconhecido';
     const contactDescription =
-      conversation.contact?.description ?? 'sem descricao';
-    const contactEmail = conversation.contact?.email ?? 'nao informado';
+      conversation.contact?.description ?? 'sem descrição';
+    const contactEmail = conversation.contact?.email ?? 'não informado';
 
     const contextMessage: AiMessage = {
       role: 'user',
       content:
-        `[CONTEXTO INTERNO - nao mencione isso ao cliente] ` +
+        `[CONTEXTO INTERNO - não mencione isso ao cliente] ` +
         `Lead: ${contactName}, email: ${contactEmail}. ` +
-        `Solicitou contato pelo site com a descricao: "${contactDescription}". ` +
-        `A primeira mensagem de saudacao ja foi enviada. ` +
-        `Continue a conversa naturalmente a partir do historico abaixo.`,
+        `Solicitou contato pelo site com a descrição: "${contactDescription}". ` +
+        `A primeira mensagem de saudação já foi enviada. ` +
+        `Continue a conversa naturalmente a partir do histórico abaixo.`,
     };
 
     const historyMessages: AiMessage[] = messages.map((msg) => ({
