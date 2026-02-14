@@ -389,15 +389,30 @@ export class WhatsappService {
   private normalizePhoneNumber(phone: string): string {
     const cleaned = phone.replace(/\D/g, '');
 
-    if (cleaned.startsWith('55') && cleaned.length >= 12) {
-      return cleaned;
+    let number = cleaned;
+
+    if (!number.startsWith('55')) {
+      number = `55${number}`;
     }
 
-    if (cleaned.length === 11 || cleaned.length === 10) {
-      return `55${cleaned}`;
+    const ddd = number.substring(2, 4);
+    const subscriber = number.substring(4);
+
+    const isMobile =
+      subscriber.length === 9 && subscriber.startsWith('9');
+    const isLandline = subscriber.length === 8 && !subscriber.startsWith('9');
+    const isMissingNine =
+      subscriber.length === 8 && subscriber.startsWith('9');
+
+    if (isMobile || isLandline) {
+      return number;
     }
 
-    return cleaned;
+    if (isMissingNine) {
+      return `55${ddd}9${subscriber}`;
+    }
+
+    return number;
   }
 
   private isConversationExpired(conversation: WhatsappConversation): boolean {
