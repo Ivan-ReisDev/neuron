@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TicketModule } from './modules/ticket/ticket.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 @Module({
   imports: [
@@ -33,7 +34,10 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
           database: configService.get<string>('DB_NAME'),
           autoLoadEntities: true,
           synchronize: !isProduction,
-          ssl: isProduction ? { rejectUnauthorized: false } : false,
+          ssl:
+            isProduction || configService.get<string>('DB_SSL') === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
         };
       },
     }),
@@ -48,6 +52,7 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
     TicketModule,
     MenuModule,
     WhatsappModule,
+    BlogModule,
   ],
   controllers: [],
   providers: [],
