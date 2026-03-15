@@ -19,7 +19,7 @@ export class InvoiceService {
     private readonly storageService: StorageService,
   ) {}
 
-  async create(data: CreateInvoiceDto): Promise<Invoice> {
+  async create(data: CreateInvoiceDto) {
     const invoiceData: DeepPartial<Invoice> = {
       description: data.description,
       amount: data.amount,
@@ -27,13 +27,14 @@ export class InvoiceService {
       userId: data.userId,
     };
 
-    return this.invoiceRepository.create(invoiceData);
+    const invoice = await this.invoiceRepository.create(invoiceData);
+    return this.sanitizeInvoiceAdmin(invoice);
   }
 
   async findAll(
     currentUser: JwtPayload,
     query: PaginationQueryDto,
-  ): Promise<PaginatedResponseDto<Invoice>> {
+  ) {
     let result: PaginatedResponseDto<Invoice>;
 
     if (currentUser.role === ADMIN_ROLE) {
@@ -45,17 +46,18 @@ export class InvoiceService {
       );
     }
 
-    result.data = result.data.map((invoice) =>
-      this.applyVisibility(invoice, currentUser),
-    );
-
-    return result;
+    return {
+      data: result.data.map((invoice) =>
+        this.sanitizeInvoice(invoice, currentUser),
+      ),
+      meta: result.meta,
+    };
   }
 
-  async findById(currentUser: JwtPayload, id: string): Promise<Invoice> {
+  async findById(currentUser: JwtPayload, id: string) {
     const invoice = await this.invoiceRepository.findById(id);
     this.ensureOwnershipOrAdmin(currentUser, invoice);
-    return this.applyVisibility(invoice, currentUser);
+    return this.sanitizeInvoice(invoice, currentUser);
   }
 
   async update(id: string, data: UpdateInvoiceDto): Promise<Invoice> {
@@ -160,11 +162,27 @@ export class InvoiceService {
     }
   }
 
-  private applyVisibility(invoice: Invoice, currentUser: JwtPayload): Invoice {
-    if (currentUser.role !== ADMIN_ROLE) {
-      invoice.comprovante = null;
-      invoice.comprovanteId = null;
+  private sanitizeInvoice(invoice: Invoice, currentUser: JwtPayload) {
+    const sanitized: Record<string, any> = {
+      id: invoice.id,
+      description: invoice.description,
+      amount: invoice.amount,
+      dueDate: invoice.dueDate,
+      paidAt: invoice.paidAt,
+      notaFiscalId: invoice.notaFiscalId,
+      status: invoice.status,
+      user: invoice.user
+        ? { id: invoice.user.id, name: invoice.user.name, email: invoice.user.email }
+        : null,
+      userId: invoice.userId,
+      createdAt: invoice.createdAt,
+      updatedAt: invoice.updatedAt,
+    };
+
+    if (currentUser.role === ADMIN_ROLE) {
+      sanitized.comprovanteId = invoice.comprovanteId;
     }
-    return invoice;
+
+    return sanitized;
   }
 }

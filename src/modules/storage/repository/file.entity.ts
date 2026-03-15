@@ -20,7 +20,7 @@ export class File extends BaseEntity {
   @Column({ type: 'enum', enum: FileType })
   type: FileType;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
 
