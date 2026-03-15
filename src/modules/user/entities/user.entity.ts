@@ -22,7 +22,7 @@ export class User extends BaseEntity {
   @Column()
   roleId: string;
 
-  @Column({ nullable: true, length: 20 })
+  @Column({ type: 'varchar', nullable: true, length: 20 })
   phone: string | null;
 
   @Column({ default: true })
