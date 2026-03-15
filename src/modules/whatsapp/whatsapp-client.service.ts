@@ -67,8 +67,7 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
         '--metrics-recording-only',
         '--mute-audio',
         '--no-zygote',
-        '--single-process',
-        '--js-flags=--max-old-space-size=256',
+        '--js-flags=--max-old-space-size=512',
       ],
       timeout: 120000,
     };
@@ -113,6 +112,11 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
       this.isReady = false;
       this.logger.warn(`WhatsApp desconectado: ${reason}`);
       this.eventEmitter.emit(WHATSAPP_DISCONNECTED_EVENT, reason);
+
+      setTimeout(() => {
+        this.logger.log('Tentando reconectar WhatsApp...');
+        this.initializeClient();
+      }, 5000);
     });
 
     this.client.on('message', (message: Message) => {
