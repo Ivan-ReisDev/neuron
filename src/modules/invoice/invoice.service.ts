@@ -60,7 +60,7 @@ export class InvoiceService {
     return this.sanitizeInvoice(invoice, currentUser);
   }
 
-  async update(id: string, data: UpdateInvoiceDto): Promise<Invoice> {
+  async update(id: string, data: UpdateInvoiceDto) {
     const updateData: DeepPartial<Invoice> = {};
 
     if (data.description !== undefined) updateData.description = data.description;
@@ -69,14 +69,15 @@ export class InvoiceService {
     if (data.userId !== undefined) updateData.userId = data.userId;
     if (data.paidAt !== undefined) updateData.paidAt = new Date(data.paidAt);
 
-    return this.invoiceRepository.update(id, updateData);
+    const invoice = await this.invoiceRepository.update(id, updateData);
+    return this.sanitizeInvoiceAdmin(invoice);
   }
 
   async uploadNotaFiscal(
     id: string,
     file: Express.Multer.File,
     userId: string,
-  ): Promise<Invoice> {
+  ) {
     const invoice = await this.invoiceRepository.findById(id);
 
     if (invoice.notaFiscalId) {
@@ -89,14 +90,15 @@ export class InvoiceService {
       'invoices/notas-fiscais',
     );
 
-    return this.invoiceRepository.update(id, { notaFiscalId: uploaded.id });
+    const updated = await this.invoiceRepository.update(id, { notaFiscalId: uploaded.id });
+    return this.sanitizeInvoiceAdmin(updated);
   }
 
   async uploadComprovante(
     id: string,
     file: Express.Multer.File,
     userId: string,
-  ): Promise<Invoice> {
+  ) {
     const invoice = await this.invoiceRepository.findById(id);
 
     if (invoice.comprovanteId) {
@@ -109,7 +111,8 @@ export class InvoiceService {
       'invoices/comprovantes',
     );
 
-    return this.invoiceRepository.update(id, { comprovanteId: uploaded.id });
+    const updated = await this.invoiceRepository.update(id, { comprovanteId: uploaded.id });
+    return this.sanitizeInvoiceAdmin(updated);
   }
 
   async getNotaFiscalUrl(
@@ -160,6 +163,10 @@ export class InvoiceService {
     if (invoice.userId !== currentUser.sub) {
       throw new ForbiddenException(AUTH_MESSAGES.FORBIDDEN);
     }
+  }
+
+  private sanitizeInvoiceAdmin(invoice: Invoice) {
+    return this.sanitizeInvoice(invoice, { role: ADMIN_ROLE } as JwtPayload);
   }
 
   private sanitizeInvoice(invoice: Invoice, currentUser: JwtPayload) {
