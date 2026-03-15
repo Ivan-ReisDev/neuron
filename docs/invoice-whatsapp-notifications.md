@@ -138,7 +138,7 @@ POST /invoices/:id/notify
 | Pacote | Versao | Motivo |
 |---|---|---|
 | `@nestjs/schedule` | 6.1.1 | Suporte a cron jobs no NestJS |
-
+aa
 ---
 
 ## Logs
