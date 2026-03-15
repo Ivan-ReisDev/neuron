@@ -58,18 +58,7 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
         '--disable-dev-shm-usage',
         '--disable-gpu',
         '--no-first-run',
-        '--disable-accelerated-2d-canvas',
-        '--disable-background-networking',
-        '--disable-extensions',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--disable-translate',
-        '--metrics-recording-only',
-        '--mute-audio',
-        '--no-zygote',
-        '--js-flags=--max-old-space-size=1024',
       ],
-      timeout: 120000,
     };
 
     if (chromiumPath) {
@@ -79,7 +68,6 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: puppeteerOptions,
-      webVersionCache: { type: 'none' },
     });
 
     this.registerEventHandlers();
