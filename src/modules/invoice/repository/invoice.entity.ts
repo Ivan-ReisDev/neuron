@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinColumn, JoinTable } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { User } from '../../user/entities/user.entity';
 import { File } from '../../storage/repository/file.entity';
@@ -25,12 +25,9 @@ export class Invoice extends BaseEntity {
   @Column({ nullable: true })
   notaFiscalId: string | null;
 
-  @ManyToOne(() => File, { nullable: true, eager: true })
-  @JoinColumn({ name: 'comprovanteId' })
-  comprovante: File | null;
-
-  @Column({ nullable: true })
-  comprovanteId: string | null;
+  @ManyToMany(() => File, { eager: true })
+  @JoinTable({ name: 'invoice_comprovantes' })
+  comprovantes: File[];
 
   @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'userId' })

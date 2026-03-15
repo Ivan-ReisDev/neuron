@@ -127,6 +127,15 @@ export class InvoiceController {
     return this.invoiceService.uploadComprovante(id, file, user.sub);
   }
 
+  @Delete(':id/comprovantes/:fileId')
+  @RequirePermissions(Resource.INVOICES, Action.UPDATE)
+  async removeComprovante(
+    @Param('id', ParseUuidPipe) id: string,
+    @Param('fileId', ParseUuidPipe) fileId: string,
+  ) {
+    return await this.invoiceService.removeComprovante(id, fileId);
+  }
+
   @Get(':id/nota-fiscal/url')
   @RequirePermissions(Resource.INVOICES, Action.READ)
   async getNotaFiscalUrl(
@@ -136,9 +145,12 @@ export class InvoiceController {
     return this.invoiceService.getNotaFiscalUrl(user, id);
   }
 
-  @Get(':id/comprovante/url')
+  @Get(':id/comprovantes/:fileId/url')
   @RequirePermissions(Resource.INVOICES, Action.UPDATE)
-  async getComprovanteUrl(@Param('id', ParseUuidPipe) id: string) {
-    return this.invoiceService.getComprovanteUrl(id);
+  async getComprovanteUrl(
+    @Param('id', ParseUuidPipe) id: string,
+    @Param('fileId', ParseUuidPipe) fileId: string,
+  ) {
+    return this.invoiceService.getComprovanteUrl(id, fileId);
   }
 }

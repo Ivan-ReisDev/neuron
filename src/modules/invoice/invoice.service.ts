@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DeepPartial } from 'typeorm';
 import { AUTH_MESSAGES } from '../../shared/constants/exception-messages';
 import { PaginationQueryDto } from '../../shared/dto/pagination-query.dto';
@@ -81,6 +81,7 @@ export class InvoiceService {
     const invoice = await this.invoiceRepository.findById(id);
 
     if (invoice.notaFiscalId) {
+      await this.invoiceRepository.update(id, { notaFiscalId: null });
       await this.storageService.delete(invoice.notaFiscalId);
     }
 
@@ -101,18 +102,34 @@ export class InvoiceService {
   ) {
     const invoice = await this.invoiceRepository.findById(id);
 
-    if (invoice.comprovanteId) {
-      await this.storageService.delete(invoice.comprovanteId);
-    }
-
     const uploaded = await this.storageService.upload(
       file,
       userId,
       'invoices/comprovantes',
     );
 
-    const updated = await this.invoiceRepository.update(id, { comprovanteId: uploaded.id });
-    return this.sanitizeInvoiceAdmin(updated);
+    invoice.comprovantes = [...(invoice.comprovantes || []), uploaded];
+    await this.invoiceRepository.save(invoice);
+
+    const refreshed = await this.invoiceRepository.findById(id);
+    return this.sanitizeInvoiceAdmin(refreshed);
+  }
+
+  async removeComprovante(id: string, fileId: string) {
+    const invoice = await this.invoiceRepository.findById(id);
+
+    const comprovante = (invoice.comprovantes || []).find(c => c.id === fileId);
+    if (!comprovante) {
+      throw new NotFoundException('Comprovante não encontrado nesta fatura');
+    }
+
+    invoice.comprovantes = invoice.comprovantes.filter(c => c.id !== fileId);
+    await this.invoiceRepository.save(invoice);
+
+    await this.storageService.delete(fileId);
+
+    const refreshed = await this.invoiceRepository.findById(id);
+    return this.sanitizeInvoiceAdmin(refreshed);
   }
 
   async getNotaFiscalUrl(
@@ -131,24 +148,38 @@ export class InvoiceService {
 
   async getComprovanteUrl(
     id: string,
+    fileId: string,
   ): Promise<{ url: string; expiresIn: number }> {
     const invoice = await this.invoiceRepository.findById(id);
 
-    if (!invoice.comprovanteId) {
-      throw new ForbiddenException('Comprovante não disponível');
+    const comprovante = (invoice.comprovantes || []).find(c => c.id === fileId);
+    if (!comprovante) {
+      throw new NotFoundException('Comprovante não encontrado nesta fatura');
     }
 
-    return this.storageService.getSignedUrl(invoice.comprovanteId);
+    return this.storageService.getSignedUrl(fileId);
   }
 
   async remove(id: string): Promise<void> {
     const invoice = await this.invoiceRepository.findById(id);
+    const { notaFiscalId } = invoice;
+    const comprovanteIds = (invoice.comprovantes || []).map(c => c.id);
 
-    if (invoice.notaFiscalId) {
-      await this.storageService.delete(invoice.notaFiscalId);
+    // Limpar relações antes de deletar files
+    if (notaFiscalId) {
+      await this.invoiceRepository.update(id, { notaFiscalId: null });
     }
-    if (invoice.comprovanteId) {
-      await this.storageService.delete(invoice.comprovanteId);
+    if (comprovanteIds.length > 0) {
+      invoice.comprovantes = [];
+      await this.invoiceRepository.save(invoice);
+    }
+
+    // Deletar files do R2 + banco
+    if (notaFiscalId) {
+      await this.storageService.delete(notaFiscalId);
+    }
+    for (const comprovanteId of comprovanteIds) {
+      await this.storageService.delete(comprovanteId);
     }
 
     await this.invoiceRepository.remove(id);
@@ -187,7 +218,7 @@ export class InvoiceService {
     };
 
     if (currentUser.role === ADMIN_ROLE) {
-      sanitized.comprovanteId = invoice.comprovanteId;
+      sanitized.comprovantes = (invoice.comprovantes || []).map(c => c.id);
     }
 
     return sanitized;

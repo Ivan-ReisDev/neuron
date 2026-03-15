@@ -179,7 +179,7 @@
     "dueDate": "2026-04-15",
     "paidAt": null,
     "notaFiscalId": null,
-    "comprovanteId": null,
+    "comprovantes": [],
     "status": "pending",
     "user": { "id": "uuid", "name": "Alice Fernandes", "email": "alice@..." },
     "userId": "uuid-do-usuario",
@@ -245,7 +245,7 @@
   }
   ```
 
-  > **Visibilidade:** Quando o usuario e USER, o campo `comprovanteId` NAO aparece na resposta. Apenas ADMIN ve esse campo. A resposta nunca retorna dados sensíveis (senha, role, permissions) — apenas `user: { id, name, email }`.
+  > **Visibilidade:** Quando o usuario e USER, o campo `comprovantes` NAO aparece na resposta. Apenas ADMIN ve esse campo (array de UUIDs dos files). A resposta nunca retorna dados sensiveis (senha, role, permissions) — apenas `user: { id, name, email }`.
 
   **curl:**
   ```bash
@@ -345,7 +345,9 @@
 
   ---
 
-  ### Upload do Comprovante (ADMIN)
+  ### Upload de Comprovante (ADMIN)
+
+  Uma fatura pode ter multiplos comprovantes. Cada upload adiciona um novo (nao substitui).
 
   ```
   POST /invoices/:id/comprovante
@@ -356,13 +358,29 @@
   |--------|------|-------------|------------------------------------|
   | `file` | file | sim         | Arquivo (imagem ou PDF, max 10MB)  |
 
-  > O comprovante so pode ser visualizado pelo ADMIN. O USER nao tem acesso. Se ja existir um comprovante, o anterior e substituido.
+  > O comprovante so pode ser visualizado pelo ADMIN. O USER nao tem acesso. Cada chamada adiciona um novo comprovante a fatura.
 
   **curl:**
   ```bash
   curl -X POST http://localhost:3000/invoices/uuid-da-fatura/comprovante \
     -H "Authorization: Bearer <token>" \
     -F "file=@/caminho/para/comprovante.pdf"
+  ```
+
+  ---
+
+  ### Remover um Comprovante (ADMIN)
+
+  ```
+  DELETE /invoices/:id/comprovantes/:fileId
+  ```
+
+  Remove um comprovante especifico da fatura e deleta o arquivo do R2.
+
+  **curl:**
+  ```bash
+  curl -X DELETE http://localhost:3000/invoices/uuid-da-fatura/comprovantes/uuid-do-file \
+    -H "Authorization: Bearer <token>"
   ```
 
   ---
@@ -391,10 +409,10 @@
 
   ---
 
-  ### Obter URL do Comprovante (ADMIN only)
+  ### Obter URL de um Comprovante (ADMIN only)
 
   ```
-  GET /invoices/:id/comprovante/url
+  GET /invoices/:id/comprovantes/:fileId/url
   ```
 
   **Resposta:**
@@ -405,11 +423,11 @@
   }
   ```
 
-  > Apenas ADMIN pode acessar. USER recebe `403 Forbidden`.
+  > Apenas ADMIN pode acessar. USER recebe `403 Forbidden`. Use o `fileId` do array `comprovantes` retornado na listagem.
 
   **curl:**
   ```bash
-  curl http://localhost:3000/invoices/uuid-da-fatura/comprovante/url \
+  curl http://localhost:3000/invoices/uuid-da-fatura/comprovantes/uuid-do-file/url \
     -H "Authorization: Bearer <token>"
   ```
 

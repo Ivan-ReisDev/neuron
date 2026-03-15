@@ -18,6 +18,10 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     super(repository);
   }
 
+  async save(invoice: Invoice): Promise<Invoice> {
+    return this.repository.save(invoice);
+  }
+
   async findAllByUserId(
     userId: string,
     query: PaginationQueryDto,
