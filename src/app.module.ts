@@ -13,6 +13,7 @@ import { TicketModule } from './modules/ticket/ticket.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { BlogModule } from './modules/blog/blog.module';
     MenuModule,
     WhatsappModule,
     BlogModule,
+    StorageModule,
   ],
   controllers: [],
   providers: [],

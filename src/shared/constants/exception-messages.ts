@@ -31,6 +31,13 @@ export const AI_MESSAGES = {
   GENERATION_FAILED: 'Não foi possível gerar a resposta',
 };
 
+export const STORAGE_MESSAGES = {
+  UPLOAD_FAILED: 'Não foi possível fazer o upload do arquivo',
+  DELETE_FAILED: 'Não foi possível remover o arquivo',
+  INVALID_FILE_TYPE: 'Tipo de arquivo não permitido',
+  FILE_TOO_LARGE: 'O arquivo excede o tamanho máximo permitido',
+};
+
 export const WHATSAPP_MESSAGES = {
   CLIENT_NOT_READY: 'O cliente WhatsApp ainda não está conectado',
   SEND_FAILED: 'Não foi possível enviar a mensagem via WhatsApp',
