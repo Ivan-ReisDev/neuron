@@ -50,6 +50,14 @@ export class CreateUserDto {
   roleId: string;
 
   @ApiPropertyOptional({
+    description: 'Telefone do usuário (com DDI+DDD)',
+    example: '5521999999999',
+  })
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiPropertyOptional({
     description: 'Status do usuário (ativo/inativo)',
     default: true,
   })

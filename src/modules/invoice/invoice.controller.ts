@@ -17,6 +17,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiBody, ApiTags } from '@nestjs/swagger';
 import { InvoiceService } from './invoice.service';
+import { InvoiceNotificationService } from './invoice-notification.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
@@ -33,7 +34,10 @@ const TEN_MB = 10 * 1024 * 1024;
 @ApiBearerAuth()
 @Controller('invoices')
 export class InvoiceController {
-  constructor(private readonly invoiceService: InvoiceService) {}
+  constructor(
+    private readonly invoiceService: InvoiceService,
+    private readonly invoiceNotificationService: InvoiceNotificationService,
+  ) {}
 
   @Post()
   @RequirePermissions(Resource.INVOICES, Action.CREATE)
@@ -152,5 +156,12 @@ export class InvoiceController {
     @Param('fileId', ParseUuidPipe) fileId: string,
   ) {
     return this.invoiceService.getComprovanteUrl(id, fileId);
+  }
+
+  @Post(':id/notify')
+  @RequirePermissions(Resource.INVOICES, Action.UPDATE)
+  async notifyInvoice(@Param('id', ParseUuidPipe) id: string) {
+    await this.invoiceNotificationService.notifyInvoice(id);
+    return { message: 'Notificacao enviada com sucesso' };
   }
 }

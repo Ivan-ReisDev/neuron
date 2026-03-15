@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AiProviderModule } from './shared/providers/ai/ai-provider.module';
 import { SeederModule } from './shared/seeders/seeder.module';
 import { ContactModule } from './modules/contact/contact.module';
@@ -44,6 +45,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
       },
     }),
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     AiProviderModule,
     SeederModule,
     PermissionModule,

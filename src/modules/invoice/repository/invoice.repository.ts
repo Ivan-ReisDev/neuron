@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsOrder, Repository } from 'typeorm';
+import { FindOptionsOrder, IsNull, LessThan, Repository } from 'typeorm';
 import { BaseRepository } from 'src/shared/repositories/base.repository';
 import { Invoice } from './invoice.entity';
 import { PaginationQueryDto } from 'src/shared/dto/pagination-query.dto';
@@ -48,5 +48,21 @@ export class InvoiceRepository extends BaseRepository<Invoice> {
     };
 
     return new PaginatedResponseDto(data, meta);
+  }
+
+  async findUnpaidByDueDate(date: Date): Promise<Invoice[]> {
+    const dateStr = date.toISOString().split('T')[0];
+    return this.repository.find({
+      where: { dueDate: dateStr as any, paidAt: IsNull() },
+      relations: ['user'],
+    });
+  }
+
+  async findOverdue(): Promise<Invoice[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return this.repository.find({
+      where: { dueDate: LessThan(today) as any, paidAt: IsNull() },
+      relations: ['user'],
+    });
   }
 }
