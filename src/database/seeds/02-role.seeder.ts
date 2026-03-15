@@ -13,8 +13,9 @@ export default class RoleSeeder {
 
     const userPermissions = allPermissions.filter(
       (p) =>
-        p.resource === Resource.TICKETS &&
-        (p.action === Action.CREATE || p.action === Action.READ),
+        (p.resource === Resource.TICKETS &&
+          (p.action === Action.CREATE || p.action === Action.READ)) ||
+        (p.resource === Resource.INVOICES && p.action === Action.READ),
     );
 
     const adminRole = roleRepository.create({

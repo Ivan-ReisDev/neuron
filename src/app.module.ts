@@ -14,6 +14,7 @@ import { MenuModule } from './modules/menu/menu.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { StorageModule } from './modules/storage/storage.module';
     WhatsappModule,
     BlogModule,
     StorageModule,
+    InvoiceModule,
   ],
   controllers: [],
   providers: [],

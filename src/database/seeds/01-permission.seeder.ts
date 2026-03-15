@@ -40,6 +40,12 @@ const PERMISSION_DESCRIPTIONS: Record<Resource, Record<Action, string>> = {
     [Action.UPDATE]: 'Permite atualizar conversas WhatsApp',
     [Action.DELETE]: 'Permite remover conversas WhatsApp',
   },
+  [Resource.INVOICES]: {
+    [Action.CREATE]: 'Permite criar faturas',
+    [Action.READ]: 'Permite visualizar faturas',
+    [Action.UPDATE]: 'Permite atualizar faturas',
+    [Action.DELETE]: 'Permite remover faturas',
+  },
 };
 
 export default class PermissionSeeder {

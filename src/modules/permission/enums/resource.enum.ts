@@ -5,4 +5,5 @@ export enum Resource {
   PERMISSIONS = 'permissions',
   TICKETS = 'tickets',
   WHATSAPP_CONVERSATIONS = 'whatsapp-conversations',
+  INVOICES = 'invoices',
 }
