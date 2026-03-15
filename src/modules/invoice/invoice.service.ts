@@ -5,6 +5,7 @@ import { PaginationQueryDto } from '../../shared/dto/pagination-query.dto';
 import { PaginatedResponseDto } from '../../shared/dto/paginated-response.dto';
 import { JwtPayload } from '../auth/types/jwt-payload';
 import { StorageService } from '../storage/storage.service';
+import { InvoiceNotificationService } from './invoice-notification.service';
 import { InvoiceRepository } from './repository/invoice.repository';
 import { Invoice } from './repository/invoice.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -17,6 +18,7 @@ export class InvoiceService {
   constructor(
     private readonly invoiceRepository: InvoiceRepository,
     private readonly storageService: StorageService,
+    private readonly notificationService: InvoiceNotificationService,
   ) {}
 
   async create(data: CreateInvoiceDto) {
@@ -92,6 +94,9 @@ export class InvoiceService {
     );
 
     const updated = await this.invoiceRepository.update(id, { notaFiscalId: uploaded.id });
+
+    this.notificationService.notifyNotaFiscalUploaded(id).catch(() => {});
+
     return this.sanitizeInvoiceAdmin(updated);
   }
 

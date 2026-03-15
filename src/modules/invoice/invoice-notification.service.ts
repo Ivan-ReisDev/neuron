@@ -21,7 +21,7 @@ export class InvoiceNotificationService {
     }
   }
 
-  @Cron('0 10 * * *')
+  // @Cron('0 10 * * *') // TODO: descomente para reativar o cron
   async handleDailyInvoiceNotifications(): Promise<void> {
     this.logger.log('Iniciando verificacao diaria de faturas...');
 
@@ -140,44 +140,93 @@ export class InvoiceNotificationService {
 
     const templates = {
       reminder: [
-        `Ola, *${nome}*! 👋`,
+        `Olá, *${nome}*! 👋`,
         '',
         `Passando para lembrar que sua fatura vence em *2 dias* (${dataVencimento}).`,
         '',
         `📄 *${descricao}*`,
         `💰 Valor: *R$ ${valor}*`,
         '',
-        `🔑 Chave PIX: *${chavePix}*`,
+        `🔑 Chave PIX (CNPJ): *${chavePix}*`,
         '',
-        `Qualquer duvida, estamos a disposicao!`,
+        `Qualquer dúvida, estamos à disposição!`,
       ],
       due_today: [
-        `Ola, *${nome}*! ⚠️`,
+        `Olá, *${nome}*! ⚠️`,
         '',
         `Sua fatura vence *hoje* (${dataVencimento}).`,
         '',
         `📄 *${descricao}*`,
         `💰 Valor: *R$ ${valor}*`,
         '',
-        `🔑 Chave PIX: *${chavePix}*`,
+        `🔑 Chave PIX (CNPJ): *${chavePix}*`,
         '',
         `Evite juros, pague hoje mesmo!`,
       ],
       overdue: [
-        `Ola, *${nome}*! 🚨`,
+        `Olá, *${nome}*! 🚨`,
         '',
-        `Sua fatura esta *vencida* desde ${dataVencimento}.`,
+        `Sua fatura está *vencida* desde ${dataVencimento}.`,
         '',
         `📄 *${descricao}*`,
         `💰 Valor: *R$ ${valor}*`,
         '',
-        `🔑 Chave PIX: *${chavePix}*`,
+        `🔑 Chave PIX (CNPJ): *${chavePix}*`,
         '',
-        `Por favor, regularize o quanto antes. Qualquer duvida, entre em contato!`,
+        `Por favor, regularize o quanto antes. Qualquer dúvida, entre em contato!`,
       ],
     };
 
     return templates[type].join('\n');
+  }
+
+  async notifyNotaFiscalUploaded(invoiceId: string): Promise<void> {
+    const invoice = await this.invoiceRepository.findById(invoiceId);
+
+    if (!invoice) {
+      this.logger.warn(`Fatura ${invoiceId} não encontrada para notificação de nota fiscal`);
+      return;
+    }
+
+    if (!this.whatsappClient.getConnectionStatus()) {
+      this.logger.warn('WhatsApp não conectado, notificação de nota fiscal não enviada');
+      return;
+    }
+
+    const phone = invoice.user?.phone;
+
+    if (!phone) {
+      this.logger.warn(
+        `Usuário ${invoice.user?.name ?? invoice.userId} sem telefone, ignorando notificação de nota fiscal`,
+      );
+      return;
+    }
+
+    const nome = invoice.user?.name ?? 'Cliente';
+    const valor = Number(invoice.amount).toFixed(2).replace('.', ',');
+    const dataVencimento = this.formatDate(new Date(invoice.dueDate));
+    const descricao = invoice.description;
+
+    const message = [
+      `Olá, *${nome}*! 🎉`,
+      '',
+      `Parabéns! Sua nota fiscal referente a *${descricao}* no valor de *R$ ${valor}* com vencimento em *${dataVencimento}* já está disponível em nosso portal.`,
+      '',
+      `📄 Acesse *ivanreis.com.br/login* para baixar sua nota fiscal.`,
+      '',
+      `Qualquer dúvida, estamos à disposição!`,
+    ].join('\n');
+
+    try {
+      await this.whatsappClient.sendMessage(phone, message);
+      this.logger.log(
+        `Notificação [nota_fiscal] enviada para ${invoice.user.name} (${phone}) — fatura ${invoice.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Erro ao enviar notificação de nota fiscal para ${phone}: ${error}`,
+      );
+    }
   }
 
   private formatDate(date: Date): string {
