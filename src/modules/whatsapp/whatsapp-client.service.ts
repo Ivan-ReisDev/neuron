@@ -67,7 +67,7 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
         '--metrics-recording-only',
         '--mute-audio',
         '--no-zygote',
-        '--js-flags=--max-old-space-size=512',
+        '--js-flags=--max-old-space-size=1024',
       ],
       timeout: 120000,
     };
