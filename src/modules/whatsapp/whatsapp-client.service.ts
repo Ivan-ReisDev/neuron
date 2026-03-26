@@ -71,7 +71,11 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.registerEventHandlers();
-    void this.client.initialize();
+    this.client.initialize().catch((error) => {
+      this.logger.error(
+        `Falha ao inicializar cliente WhatsApp: ${error}. O WhatsApp ficara indisponivel.`,
+      );
+    });
   }
 
   private registerEventHandlers(): void {

@@ -11,7 +11,10 @@ import { GroqProvider } from './groq.provider';
     {
       provide: AI_PROVIDER,
       useFactory: (configService: ConfigService) => {
-        const provider = configService.get<string>('AI_PROVIDER_NAME', 'gemini');
+        const provider = configService.get<string>(
+          'AI_PROVIDER_NAME',
+          'gemini',
+        );
         if (provider === 'groq') {
           return new GroqProvider(configService);
         }

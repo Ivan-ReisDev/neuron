@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, ManyToMany, JoinColumn, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinColumn,
+  JoinTable,
+} from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { User } from '../../user/entities/user.entity';
 import { File } from '../../storage/repository/file.entity';

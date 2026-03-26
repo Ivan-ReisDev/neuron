@@ -122,9 +122,7 @@ export class InvoiceNotificationService {
         `Notificacao [${type}] enviada para ${invoice.user.name} (${phone}) — fatura ${invoice.id}`,
       );
     } catch (error) {
-      this.logger.error(
-        `Erro ao enviar notificacao para ${phone}: ${error}`,
-      );
+      this.logger.error(`Erro ao enviar notificacao para ${phone}: ${error}`);
     }
   }
 
@@ -184,12 +182,16 @@ export class InvoiceNotificationService {
     const invoice = await this.invoiceRepository.findById(invoiceId);
 
     if (!invoice) {
-      this.logger.warn(`Fatura ${invoiceId} não encontrada para notificação de nota fiscal`);
+      this.logger.warn(
+        `Fatura ${invoiceId} não encontrada para notificação de nota fiscal`,
+      );
       return;
     }
 
     if (!this.whatsappClient.getConnectionStatus()) {
-      this.logger.warn('WhatsApp não conectado, notificação de nota fiscal não enviada');
+      this.logger.warn(
+        'WhatsApp não conectado, notificação de nota fiscal não enviada',
+      );
       return;
     }
 

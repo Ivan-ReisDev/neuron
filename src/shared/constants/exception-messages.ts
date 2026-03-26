@@ -38,6 +38,14 @@ export const STORAGE_MESSAGES = {
   FILE_TOO_LARGE: 'O arquivo excede o tamanho máximo permitido',
 };
 
+export const EMAIL_MESSAGES = {
+  SEND_FAILED: 'Não foi possível enviar o e-mail',
+  INVALID_TEMPLATE: (template: string) =>
+    `O template de e-mail '${template}' não foi encontrado`,
+  MISSING_RECIPIENT: 'O destinatário do e-mail é obrigatório',
+  PROVIDER_ERROR: 'Erro ao comunicar com o provedor de e-mail',
+};
+
 export const WHATSAPP_MESSAGES = {
   CLIENT_NOT_READY: 'O cliente WhatsApp ainda não está conectado',
   SEND_FAILED: 'Não foi possível enviar a mensagem via WhatsApp',

@@ -38,7 +38,10 @@ export class WhatsappService {
     @Inject(AI_PROVIDER) private readonly aiProvider: AiProvider,
     private readonly configService: ConfigService,
   ) {
-    this.providerName = this.configService.get<string>('AI_PROVIDER_NAME', 'gemini');
+    this.providerName = this.configService.get<string>(
+      'AI_PROVIDER_NAME',
+      'gemini',
+    );
     this.aiModel =
       this.providerName === 'groq'
         ? AiModel.LLAMA_3_3_70B
@@ -193,7 +196,9 @@ export class WhatsappService {
     }
 
     if (response.text) {
-      this.logger.log(`Resposta ${this.providerName}: ${response.text.substring(0, 80)}...`);
+      this.logger.log(
+        `Resposta ${this.providerName}: ${response.text.substring(0, 80)}...`,
+      );
       await this.sendAndSaveBotMessage(conversation, response.text);
     }
   }
@@ -398,11 +403,9 @@ export class WhatsappService {
     const ddd = number.substring(2, 4);
     const subscriber = number.substring(4);
 
-    const isMobile =
-      subscriber.length === 9 && subscriber.startsWith('9');
+    const isMobile = subscriber.length === 9 && subscriber.startsWith('9');
     const isLandline = subscriber.length === 8 && !subscriber.startsWith('9');
-    const isMissingNine =
-      subscriber.length === 8 && subscriber.startsWith('9');
+    const isMissingNine = subscriber.length === 8 && subscriber.startsWith('9');
 
     if (isMobile || isLandline) {
       return number;

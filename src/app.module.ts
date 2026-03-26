@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AiProviderModule } from './shared/providers/ai/ai-provider.module';
+import { EmailProviderModule } from './shared/providers/email/email-provider.module';
 import { SeederModule } from './shared/seeders/seeder.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { UserModule } from './modules/user/user.module';
@@ -16,6 +17,7 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     AiProviderModule,
+    EmailProviderModule,
     SeederModule,
     PermissionModule,
     RoleModule,
@@ -59,6 +62,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
     BlogModule,
     StorageModule,
     InvoiceModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],

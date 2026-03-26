@@ -433,6 +433,89 @@
 
   ---
 
+  ## E-mails
+
+  Envio de e-mails via Gmail SMTP utilizando templates HTML pre-definidos. Requer autenticacao e permissao de ADMIN.
+
+  ### Templates disponiveis
+
+  | Nome        | Descricao                                      | Campos do `context`            |
+  |-------------|------------------------------------------------|--------------------------------|
+  | `recruiter` | E-mail profissional para recrutadores          | `name` (opcional) — saudacao   |
+  | `welcome`   | E-mail de boas-vindas para novos contatos      | `name` (opcional) — saudacao   |
+
+  ### Enviar e-mail (ADMIN)
+
+  ```
+  POST /emails/send
+  Content-Type: application/json
+  ```
+
+  **Body:**
+  ```json
+  {
+    "to": "recrutador@empresa.com",
+    "subject": "Curriculo de Ivan Reis",
+    "template": "recruiter",
+    "context": {
+      "name": "Maria"
+    }
+  }
+  ```
+
+  | Campo      | Tipo   | Obrigatorio | Descricao                                       |
+  |------------|--------|-------------|-------------------------------------------------|
+  | `to`       | string | sim         | E-mail do destinatario (formato valido)         |
+  | `subject`  | string | nao         | Assunto do e-mail (padrao: "Curriculo Desenvolvedor Full-Stack") |
+  | `template` | string | sim         | Nome do template (ver tabela acima)             |
+  | `context`  | object | nao         | Dados dinamicos para personalizar o template    |
+
+  **Resposta (200):**
+  ```json
+  {
+    "message": "E-mail enviado com sucesso"
+  }
+  ```
+
+  **Erros possiveis:**
+
+  | Codigo | Descricao                                |
+  |--------|------------------------------------------|
+  | 400    | Dados invalidos (email, template, etc)   |
+  | 401    | Token nao fornecido ou invalido          |
+  | 403    | Sem permissao para enviar e-mails        |
+  | 500    | Falha ao enviar (template invalido, SMTP)|
+
+  **curl:**
+  ```bash
+  curl -X POST http://localhost:3000/api/emails/send \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "to": "recrutador@empresa.com",
+      "subject": "Curriculo de Ivan Reis",
+      "template": "recruiter",
+      "context": { "name": "Maria" }
+    }'
+  ```
+
+  > Sem `context.name`, a saudacao fica generica: "Ola,". Com `context.name`, fica personalizada: "Ola, Maria,".
+
+  ### Uso via evento (interno)
+
+  Qualquer service da aplicacao pode enviar e-mails sem injetar o `EmailService` diretamente, usando o `EventEmitter2`:
+
+  ```typescript
+  this.eventEmitter.emit('email.send', {
+    to: 'destinatario@email.com',
+    subject: 'Assunto',
+    template: 'recruiter',
+    context: { name: 'Nome' },
+  });
+  ```
+
+  ---
+
   ## Paginacao (padrao para todos os endpoints de listagem)
 
   Todos os endpoints `GET` que retornam listas suportam:
