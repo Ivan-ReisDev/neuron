@@ -35,6 +35,7 @@ RUN pnpm install --frozen-lockfile --prod
 RUN pnpm rebuild bcrypt
 
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/public ./public
 
 EXPOSE 3000
 
