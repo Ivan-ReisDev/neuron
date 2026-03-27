@@ -25,6 +25,17 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
+    process.on('unhandledRejection', (reason) => {
+      const message = String(reason);
+      if (message.includes('auth timeout') || message.includes('TIMEOUT')) {
+        this.isReady = false;
+        this.logger.warn(
+          `WhatsApp auth timeout capturado. O WhatsApp ficara indisponivel.`,
+        );
+        return;
+      }
+    });
+
     this.initializeClient();
   }
 
