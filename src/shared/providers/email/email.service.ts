@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { createTransport, Transporter } from 'nodemailer';
@@ -10,6 +14,7 @@ import { getEmailTemplate } from './templates/email-template.registry';
 export class EmailService {
   private readonly transporter: Transporter;
   private readonly fromAddress: string;
+  private readonly logger = new Logger(EmailService.name);
 
   constructor(private readonly configService: ConfigService) {
     const user = this.configService.get<string>('GMAIL_USER');
@@ -57,7 +62,8 @@ export class EmailService {
           path: a.path,
         })),
       });
-    } catch {
+    } catch (error) {
+      this.logger.error(`Falha ao enviar e-mail: ${error}`);
       throw new InternalServerErrorException(EMAIL_MESSAGES.SEND_FAILED);
     }
   }
