@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { createTransport, Transporter } from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { EMAIL_MESSAGES } from '../../constants/exception-messages';
 import { EmailAttachment, EmailOptions } from './email.interface';
 import { getEmailTemplate } from './templates/email-template.registry';
@@ -22,13 +23,15 @@ export class EmailService {
 
     this.fromAddress = user ?? '';
 
-    this.transporter = createTransport({
+    const options = {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
       auth: { user, pass },
       family: 4,
-    });
+    } satisfies SMTPTransport.Options & { family: number };
+
+    this.transporter = createTransport(options);
   }
 
   async send(options: EmailOptions): Promise<void> {
