@@ -23,8 +23,11 @@ export class EmailService {
     this.fromAddress = user ?? '';
 
     this.transporter = createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: { user, pass },
+      family: 4,
     });
   }
 
