@@ -29,6 +29,9 @@ export class EmailService {
       secure: true,
       auth: { user, pass },
       family: 4,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     } satisfies SMTPTransport.Options & { family: number };
 
     this.transporter = createTransport(options);
