@@ -55,9 +55,11 @@ export class EmailService {
     try {
       const resolvedAttachments = await this.resolveAttachments(attachments);
 
-      const { error } = await this.resend.emails.send({
+      const recipients = Array.isArray(to) ? to : [to];
+
+      const { data, error } = await this.resend.emails.send({
         from: this.fromAddress,
-        to: Array.isArray(to) ? to : [to],
+        to: recipients,
         subject,
         html,
         replyTo: this.replyToAddress || undefined,
@@ -67,6 +69,10 @@ export class EmailService {
       if (error) {
         throw new Error(`${error.name}: ${error.message}`);
       }
+
+      this.logger.log(
+        `E-mail enviado [${data?.id}] para ${recipients.join(', ')} — assunto: "${subject}"`,
+      );
     } catch (error) {
       this.logger.error(`Falha ao enviar e-mail: ${error}`);
       throw new InternalServerErrorException(EMAIL_MESSAGES.SEND_FAILED);
