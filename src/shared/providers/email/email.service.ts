@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import {
   Injectable,
   InternalServerErrorException,
@@ -5,36 +6,27 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
-import { createTransport, Transporter } from 'nodemailer';
-import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Resend } from 'resend';
 import { EMAIL_MESSAGES } from '../../constants/exception-messages';
 import { EmailAttachment, EmailOptions } from './email.interface';
 import { getEmailTemplate } from './templates/email-template.registry';
 
 @Injectable()
 export class EmailService {
-  private readonly transporter: Transporter;
+  private readonly resend: Resend;
   private readonly fromAddress: string;
+  private readonly replyToAddress: string;
   private readonly logger = new Logger(EmailService.name);
 
   constructor(private readonly configService: ConfigService) {
-    const user = this.configService.get<string>('GMAIL_USER');
-    const pass = this.configService.get<string>('GMAIL_APP_PASSWORD');
+    const apiKey = this.configService.get<string>('RESEND_API_KEY') ?? '';
+    this.fromAddress =
+      this.configService.get<string>('RESEND_FROM') ??
+      'onboarding@resend.dev';
+    this.replyToAddress =
+      this.configService.get<string>('RESEND_REPLY_TO') ?? '';
 
-    this.fromAddress = user ?? '';
-
-    const options = {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user, pass },
-      family: 4,
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 15_000,
-    } satisfies SMTPTransport.Options & { family: number };
-
-    this.transporter = createTransport(options);
+    this.resend = new Resend(apiKey);
   }
 
   async send(options: EmailOptions): Promise<void> {
@@ -61,20 +53,39 @@ export class EmailService {
     attachments?: EmailAttachment[],
   ): Promise<void> {
     try {
-      await this.transporter.sendMail({
+      const resolvedAttachments = await this.resolveAttachments(attachments);
+
+      const { error } = await this.resend.emails.send({
         from: this.fromAddress,
-        to: Array.isArray(to) ? to.join(', ') : to,
+        to: Array.isArray(to) ? to : [to],
         subject,
         html,
-        attachments: attachments?.map((a) => ({
-          filename: a.filename,
-          path: a.path,
-        })),
+        replyTo: this.replyToAddress || undefined,
+        attachments: resolvedAttachments,
       });
+
+      if (error) {
+        throw new Error(`${error.name}: ${error.message}`);
+      }
     } catch (error) {
       this.logger.error(`Falha ao enviar e-mail: ${error}`);
       throw new InternalServerErrorException(EMAIL_MESSAGES.SEND_FAILED);
     }
+  }
+
+  private async resolveAttachments(
+    attachments?: EmailAttachment[],
+  ): Promise<{ filename: string; content: Buffer }[] | undefined> {
+    if (!attachments?.length) {
+      return undefined;
+    }
+
+    return Promise.all(
+      attachments.map(async ({ filename, path }) => ({
+        filename,
+        content: await readFile(path),
+      })),
+    );
   }
 
   @OnEvent('email.send')
