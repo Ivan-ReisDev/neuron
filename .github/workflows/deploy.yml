@@ -85,17 +85,17 @@ jobs:
             echo "==> Recriando container"
             docker compose --env-file .env.docker up -d --remove-orphans
 
-            echo "==> Health check (até 90s — DB externo + boot Nest)"
-            for i in {1..45}; do
-              if docker exec neuron-api wget -q --spider http://localhost:3000/api/health 2>/dev/null; then
+            echo "==> Health check (até 180s — DB externo + boot Nest + Chromium)"
+            for i in {1..60}; do
+              if docker exec neuron-api wget -qO- http://localhost:3000/api/health >/dev/null 2>&1; then
                 echo "✓ aplicação respondendo /api/health = 200"
                 exit 0
               fi
-              echo "  esperando ($i/45)..."
-              sleep 2
+              echo "  esperando ($i/60)..."
+              sleep 3
             done
 
-            echo "✗ /api/health não respondeu em 90s — últimos logs:"
+            echo "✗ /api/health não respondeu em 180s — últimos logs:"
             docker compose --env-file .env.docker logs --tail 100 api
             exit 1
 
