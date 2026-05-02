@@ -23,6 +23,7 @@ import { PaginationQueryDto } from '../../shared/dto/pagination-query.dto';
 import { PaginatedResponseDto } from '../../shared/dto/paginated-response.dto';
 import { ParseUuidPipe } from '../../shared/pipes/parse-uuid.pipe';
 import { RequirePermissions } from '../../shared/decorators/require-permissions.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 import { Resource } from '../permission/enums/resource.enum';
 import { Action } from '../permission/enums/action.enum';
 
@@ -36,6 +37,7 @@ export class WhatsappController {
   ) {}
 
   @Get('qr.png')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Header('Content-Type', 'image/png')
   @Header('Cache-Control', 'no-store')
@@ -55,6 +57,7 @@ export class WhatsappController {
   }
 
   @Get('qr')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'QR Code atual em dataURL + status (sem autenticacao)',
