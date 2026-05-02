@@ -1,4 +1,15 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Query,
+  Res,
+} from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -23,6 +34,42 @@ export class WhatsappController {
     private readonly whatsappService: WhatsappService,
     private readonly whatsappClient: WhatsappClientService,
   ) {}
+
+  @Get('qr.png')
+  @HttpCode(HttpStatus.OK)
+  @Header('Content-Type', 'image/png')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'QR Code atual para parear o WhatsApp (PNG, sem autenticacao)',
+  })
+  @ApiResponse({ status: 200, description: 'PNG do QR Code' })
+  @ApiResponse({ status: 404, description: 'WhatsApp ja conectado ou QR nao disponivel' })
+  async getQrPng(@Res() res: Response): Promise<void> {
+    const buffer = await this.whatsappClient.getCurrentQrAsPngBuffer();
+    if (!buffer) {
+      throw new NotFoundException(
+        'QR Code indisponivel. WhatsApp ja conectado ou aguardando geracao.',
+      );
+    }
+    res.send(buffer);
+  }
+
+  @Get('qr')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'QR Code atual em dataURL + status (sem autenticacao)',
+  })
+  @ApiResponse({ status: 200, description: 'Status e dataURL do QR' })
+  async getQrStatus(): Promise<{
+    connected: boolean;
+    qr: string | null;
+  }> {
+    const dataUrl = await this.whatsappClient.getCurrentQrAsDataUrl();
+    return {
+      connected: this.whatsappClient.getConnectionStatus(),
+      qr: dataUrl,
+    };
+  }
 
   @Get('status')
   @RequirePermissions(Resource.WHATSAPP_CONVERSATIONS, Action.READ)

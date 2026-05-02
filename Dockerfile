@@ -64,13 +64,15 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
 COPY package.json pnpm-lock.yaml ./
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN mkdir -p .wwebjs_auth .wwebjs_cache
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && mkdir -p .wwebjs_auth .wwebjs_cache
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD wget -qO- http://localhost:3000/api/health >/dev/null 2>&1 || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+    CMD node -e "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" || exit 1
 
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 CMD ["node", "dist/main"]

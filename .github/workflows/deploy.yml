@@ -87,7 +87,7 @@ jobs:
 
             echo "==> Health check (até 180s — DB externo + boot Nest + Chromium)"
             for i in {1..60}; do
-              if docker exec neuron-api wget -qO- http://localhost:3000/api/health >/dev/null 2>&1; then
+              if docker exec neuron-api node -e "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" 2>/dev/null; then
                 echo "✓ aplicação respondendo /api/health = 200"
                 exit 0
               fi

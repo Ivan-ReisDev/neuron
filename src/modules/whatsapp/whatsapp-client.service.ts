@@ -8,6 +8,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
 import { Client, LocalAuth, Message } from 'whatsapp-web.js';
 import * as qrcode from 'qrcode-terminal';
+import * as QRCode from 'qrcode';
 
 const WHATSAPP_READY_EVENT = 'whatsapp.ready';
 const WHATSAPP_MESSAGE_EVENT = 'whatsapp.message';
@@ -17,6 +18,7 @@ const WHATSAPP_DISCONNECTED_EVENT = 'whatsapp.disconnected';
 export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
   private isReady = false;
+  private currentQr: string | null = null;
   private readonly logger = new Logger(WhatsappClientService.name);
 
   constructor(
@@ -47,6 +49,24 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
 
   getConnectionStatus(): boolean {
     return this.isReady;
+  }
+
+  getCurrentQr(): string | null {
+    return this.currentQr;
+  }
+
+  async getCurrentQrAsDataUrl(): Promise<string | null> {
+    if (!this.currentQr) {
+      return null;
+    }
+    return QRCode.toDataURL(this.currentQr, { width: 320, margin: 1 });
+  }
+
+  async getCurrentQrAsPngBuffer(): Promise<Buffer | null> {
+    if (!this.currentQr) {
+      return null;
+    }
+    return QRCode.toBuffer(this.currentQr, { width: 320, margin: 1 });
   }
 
   async sendMessage(phoneNumber: string, message: string): Promise<void> {
@@ -91,13 +111,17 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
 
   private registerEventHandlers(): void {
     this.client.on('qr', (qr: string) => {
-      this.logger.log('QR Code recebido. Escaneie com seu WhatsApp:');
+      this.currentQr = qr;
+      this.logger.log(
+        'QR Code recebido. Acesse /api/whatsapp/qr.png ou escaneie pelo terminal:',
+      );
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       qrcode.generate(qr, { small: true });
     });
 
     this.client.on('ready', () => {
       this.isReady = true;
+      this.currentQr = null;
       this.logger.log('Cliente WhatsApp conectado e pronto');
       this.eventEmitter.emit(WHATSAPP_READY_EVENT);
     });
