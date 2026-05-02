@@ -18,9 +18,7 @@ export class RecruiterTemplate implements EmailTemplate {
   }
 
   render(context: Record<string, unknown>): string {
-    const recruiterName = context.name
-      ? `, ${context.name as string}`
-      : '';
+    const recruiterName = context.name ? `, ${context.name as string}` : '';
 
     return `
       <!DOCTYPE html>

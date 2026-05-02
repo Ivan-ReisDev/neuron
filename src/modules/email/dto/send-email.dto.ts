@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class SendEmailDto {
   @ApiProperty({
@@ -11,7 +17,8 @@ export class SendEmailDto {
   to: string;
 
   @ApiPropertyOptional({
-    description: 'Assunto do e-mail (padrão: Currículo Desenvolvedor Full-Stack)',
+    description:
+      'Assunto do e-mail (padrão: Currículo Desenvolvedor Full-Stack)',
     example: 'Currículo de Ivan Reis',
   })
   @IsString()

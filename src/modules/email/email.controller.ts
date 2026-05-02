@@ -1,5 +1,10 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { EmailService } from '../../shared/providers/email/email.service';
 import { EmailOptions } from '../../shared/providers/email/email.interface';
 import { SendEmailDto } from './dto/send-email.dto';

@@ -18,6 +18,7 @@ import { BlogModule } from './modules/blog/blog.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { EmailModule } from './modules/email/email.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { EmailModule } from './modules/email/email.module';
     StorageModule,
     InvoiceModule,
     EmailModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],

@@ -1,0 +1,30 @@
+# Snippet pra adicionar no Caddyfile da VPS (~/proxy/Caddyfile ou /opt/proxy/Caddyfile)
+#
+# Roteia o domínio público da API pro container neuron-api:3000 dentro da rede 'web'.
+# Caddy emite e renova certificado Let's Encrypt automaticamente.
+#
+# Após adicionar este bloco, recarregar o Caddy SEM downtime:
+#   docker compose -f /opt/proxy/docker-compose.yml exec caddy \
+#     caddy reload --config /etc/caddy/Caddyfile
+#
+# Pré-requisitos:
+#   - DNS A/AAAA do domínio apontando pro IP da VPS
+#   - Container 'neuron-api' rodando e conectado na rede 'web'
+#   - Endpoint /api/health respondendo 200
+
+api.ivanreis.com.br {
+	encode zstd gzip
+
+	reverse_proxy neuron-api:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	log {
+		output stdout
+		format console
+		level INFO
+	}
+}

@@ -21,8 +21,7 @@ export class EmailService {
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY') ?? '';
     this.fromAddress =
-      this.configService.get<string>('RESEND_FROM') ??
-      'onboarding@resend.dev';
+      this.configService.get<string>('RESEND_FROM') ?? 'onboarding@resend.dev';
     this.replyToAddress =
       this.configService.get<string>('RESEND_REPLY_TO') ?? '';
 

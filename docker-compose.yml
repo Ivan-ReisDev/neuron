@@ -1,38 +1,53 @@
-services:
-  db:
-    image: postgres:17-alpine
-    container_name: neuron-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: neuron
-    ports:
-      - '5432:5432'
-    volumes:
-      - neuron-pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
-      timeout: 5s
-      retries: 5
+# docker-compose.yml — Neuron API (produção VPS)
+#
+# Uso:
+#   cp .env.docker.example .env.docker
+#   # editar valores marcados com "MUDAR"
+#   docker compose --env-file .env.docker up -d
+#
+# Banco: externo (Neon Postgres) — configurado via .env.docker
+# Reverse proxy: Caddy (rede 'web' externa) — domínio público resolvido por ele
+# Storage: Cloudflare R2 (externo)
 
-  app:
-    container_name: neuron-app
+services:
+  api:
+    image: ${API_IMAGE:-neuron-api:latest}
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: neuron-api
     restart: unless-stopped
-    ports:
-      - '3000:3000'
     env_file:
-      - .env.development
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    expose:
+      - "3000"
     volumes:
-      - .:/app
-      - /app/node_modules
-    depends_on:
-      db:
-        condition: service_healthy
+      - wwebjs_auth:/app/.wwebjs_auth
+      - wwebjs_cache:/app/.wwebjs_cache
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - neuron
+      - web
 
 volumes:
-  neuron-pgdata:
+  wwebjs_auth:
+    name: neuron_wwebjs_auth
+  wwebjs_cache:
+    name: neuron_wwebjs_cache
+
+networks:
+  neuron:
+    name: neuron
+    driver: bridge
+  web:
+    name: web
+    external: true
