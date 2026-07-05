@@ -49,6 +49,7 @@ services:
       - GMAIL_USER=${GMAIL_USER}
       - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
 
+      - WHATSAPP_ENABLED=${WHATSAPP_ENABLED:-false}
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
       - CHROMIUM_PATH=/usr/bin/chromium-browser
 

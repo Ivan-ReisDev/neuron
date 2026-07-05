@@ -27,6 +27,13 @@ export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
+    if (this.configService.get<string>('WHATSAPP_ENABLED') === 'false') {
+      this.logger.warn(
+        'WhatsApp desabilitado (WHATSAPP_ENABLED=false). Cliente nao inicializado.',
+      );
+      return;
+    }
+
     process.on('unhandledRejection', (reason) => {
       const message = String(reason);
       if (message.includes('auth timeout') || message.includes('TIMEOUT')) {
