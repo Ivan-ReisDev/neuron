@@ -1,2 +1,6 @@
 onlyBuiltDependencies:
   - bcrypt
+  - puppeteer
+overrides:
+  puppeteer: 23.4.0
+  puppeteer-core: 23.4.0
