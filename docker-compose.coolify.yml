@@ -1,0 +1,74 @@
+# docker-compose.coolify.yml — Neuron API (deploy no Coolify)
+#
+# No Coolify: New Resource -> Docker Compose -> aponta pra este arquivo.
+# Coolify cuida de proxy (Traefik), SSL, domínio e rede — NÃO publique portas
+# nem defina redes/proxy aqui.
+#
+# Domínio: setar via variável SERVICE_FQDN_API_3000 no painel do Coolify
+#   (ex: SERVICE_FQDN_API_3000=api.seudominio.com.br)
+#   Coolify gera o FQDN e roteia o Traefik pra porta 3000 do serviço 'api'.
+#
+# Demais variáveis: cadastrar em Environment Variables no painel do Coolify.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    restart: unless-stopped
+    shm_size: '512mb'
+    environment:
+      - SERVICE_FQDN_API_3000
+      - NODE_ENV=production
+      - PORT=3000
+
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSL=${DB_SSL:-true}
+
+      - AI_PROVIDER_NAME=${AI_PROVIDER_NAME:-groq}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400}
+
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
+      - R2_SIGNED_URL_EXPIRATION=${R2_SIGNED_URL_EXPIRATION:-3600}
+
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM=${RESEND_FROM}
+      - RESEND_REPLY_TO=${RESEND_REPLY_TO}
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+      - CHROMIUM_PATH=/usr/bin/chromium-browser
+
+      - PIX_KEY=${PIX_KEY}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
+    expose:
+      - "3000"
+    volumes:
+      - wwebjs_auth:/app/.wwebjs_auth
+      - wwebjs_cache:/app/.wwebjs_cache
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          node -e "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
+volumes:
+  wwebjs_auth:
+  wwebjs_cache:
